@@ -107,6 +107,7 @@ int             cpuid(void);
 void            exit(void);
 int             fork(void);
 int             growproc(int);
+void            update_rtime(void);
 int             kill(int);
 struct cpu*     mycpu(void);
 struct proc*    myproc();
@@ -118,6 +119,7 @@ void            setproc(struct proc*);
 void            sleep(void*, struct spinlock*);
 void            userinit(void);
 int             wait(void);
+int             waix(int*, int*);
 void            wakeup(void*);
 void            yield(void);
 
