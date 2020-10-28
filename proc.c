@@ -373,6 +373,8 @@ scheduler(void)
   struct cpu *c = mycpu();
   c->proc = 0;
   
+#if SCHEDULER == RR_SCHED
+
   for(;;){
     // Enable interrupts on this processor.
     sti();
@@ -398,8 +400,44 @@ scheduler(void)
       c->proc = 0;
     }
     release(&ptable.lock);
+	}
 
-  }
+#elif SCHEDULER == FCFS_SCHED
+
+  for(;;){
+    // Enable interrupts on this processor.
+    sti();
+
+    // Loop over process table looking for process to run.
+    acquire(&ptable.lock);
+    int min_ctime=0;
+    p = 0;
+    for (int i=0; i<NPROC; i++) {
+		if (ptable.proc[i].state != RUNNABLE)
+			continue;
+		if (ptable.proc[i].ctime < min_ctime || !p) {
+			min_ctime = ptable.proc[i].ctime;
+			p = ptable.proc + i;
+      }
+    }
+
+    if(p){
+      c->proc = p;
+      switchuvm(p);
+      p->state = RUNNING;
+      swtch(&(c->scheduler), p->context);
+      switchkvm();
+
+      // Process is done running for now.
+      // It should have changed its p->state before coming back.
+      c->proc = 0;
+	  }
+    release(&ptable.lock);
+	}
+
+#elif SCHEDULER == PBS_CHED
+#elif SCHEDULER == MLFQ_SCHED
+#endif 
 }
 
 // Enter scheduler.  Must hold only ptable.lock

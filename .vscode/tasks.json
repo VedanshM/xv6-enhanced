@@ -3,7 +3,7 @@
         {
             "label": "run OS :RR",
             "type": "shell",
-            "command": "make clean; make qemu-nox",
+            "command": "make qemu-nox",
             "presentation": {
                 "reveal": "always",
                 "panel": "dedicated",
@@ -21,7 +21,7 @@
         {
             "label": "run OS :FCFS",
             "type": "shell",
-            "command": "make clean; make qemu-nox SCHEDULER=FCFS",
+            "command": "make qemu-nox SCHEDULER=FCFS",
             "presentation": {
                 "reveal": "always",
                 "panel": "dedicated",
@@ -42,7 +42,7 @@
         {
             "label": "run OS :PBS",
             "type": "shell",
-            "command": "make clean; make qemu-nox SCHEDULER=PBS",
+            "command": "make qemu-nox SCHEDULER=PBS",
             "presentation": {
                 "reveal": "always",
                 "panel": "dedicated",
@@ -60,7 +60,7 @@
         {
             "label": "run OS :MLFQ",
             "type": "shell",
-            "command": "make clean; make qemu-nox SCHEDULER=MLFQ",
+            "command": "make qemu-nox SCHEDULER=MLFQ",
             "presentation": {
                 "reveal": "always",
                 "panel": "dedicated",
