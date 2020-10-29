@@ -91,6 +91,10 @@ else ifeq ($(SCHEDULER), MLFQ)
 CFLAGS+= -D SCHEDULER=MLFQ_SCHED
 endif
 
+ifdef DEBUG
+CFLAGS+= -DDEBUG
+endif
+
 
 # Disable PIE when possible (for Ubuntu 16.10 toolchain)
 ifneq ($(shell $(CC) -dumpspecs 2>/dev/null | grep -e '[^f]no-pie'),)
@@ -193,6 +197,7 @@ UPROGS=\
 	_wc\
 	_zombie\
 	_scdtest\
+	_setPriority\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)

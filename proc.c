@@ -389,7 +389,10 @@ scheduler(void)
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
-      c->proc = p;
+#ifdef DEBUG
+	  cprintf("RR  cpu: %d pid: %d name: %s\n", c - cpus, p->pid, p->name);
+#endif
+	  c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
 
@@ -423,6 +426,10 @@ scheduler(void)
     }
 
     if(p){
+#ifdef DEBUG
+		cprintf("FCFS  cpu: %d pid: %d name: %s\n", c - cpus, p->pid, p->name);
+#endif
+
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
@@ -436,7 +443,7 @@ scheduler(void)
     release(&ptable.lock);
 	}
 
-#elif SCHEDULER == PBS_CHED
+#elif SCHEDULER == PBS_SCHED
 
   for (;;) {
 	  // Enable interrupts on this processor.
@@ -456,6 +463,11 @@ scheduler(void)
 	  }
 
 	  if (p) {
+#ifdef DEBUG
+		  cprintf("PBS  cpu: %d pid: %d name: %s pty: %d \n", 
+      c - cpus, p->pid, p->name, p->priority);
+#endif
+
 		  c->proc = p;
 		  switchuvm(p);
 		  p->state = RUNNING;
