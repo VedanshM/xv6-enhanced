@@ -92,6 +92,7 @@ found:
   p->etime = -1;
   p->rtime = 0;
   p->priority = 60;
+  p->rn_cnt = 0;
 
   release(&ptable.lock);
 
@@ -451,12 +452,13 @@ scheduler(void)
 
 	  // Loop over process table looking for process to run.
 	  acquire(&ptable.lock);
-	  int high_pty = 100;
+	  int high_pty = 101;
 	  p = 0;
 	  for (int i = 0; i < NPROC; i++) {
 		  if (ptable.proc[i].state != RUNNABLE)
 			  continue;
-		  if (ptable.proc[i].priority < high_pty || !p) {
+		  if (!p || ptable.proc[i].priority < high_pty ||
+			  (ptable.proc[i].priority == high_pty && ptable.proc[i].rn_cnt < p->rn_cnt)) {
 			  high_pty = ptable.proc[i].priority;
 			  p = ptable.proc + i;
 		  }
@@ -468,6 +470,7 @@ scheduler(void)
       c - cpus, p->pid, p->name, p->priority);
 #endif
 
+		  p->rn_cnt++;
 		  c->proc = p;
 		  switchuvm(p);
 		  p->state = RUNNING;

@@ -53,6 +53,7 @@ struct proc {
   uint etime;				           // Process end time
   uint rtime;				           // Process total run time
   uint priority;			         // priority for scheduer. in range [0,100]
+  unsigned long long rn_cnt;   // no. of times got cpu
 };
 
 // Process memory is laid out contiguously, low addresses first:
