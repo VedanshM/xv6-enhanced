@@ -91,6 +91,7 @@ found:
   p->ctime = ticks;
   p->etime = -1;
   p->rtime = 0;
+  p->priority = 60;
 
   release(&ptable.lock);
 
@@ -436,6 +437,38 @@ scheduler(void)
 	}
 
 #elif SCHEDULER == PBS_CHED
+
+  for (;;) {
+	  // Enable interrupts on this processor.
+	  sti();
+
+	  // Loop over process table looking for process to run.
+	  acquire(&ptable.lock);
+	  int high_pty = 100;
+	  p = 0;
+	  for (int i = 0; i < NPROC; i++) {
+		  if (ptable.proc[i].state != RUNNABLE)
+			  continue;
+		  if (ptable.proc[i].priority < high_pty || !p) {
+			  high_pty = ptable.proc[i].priority;
+			  p = ptable.proc + i;
+		  }
+	  }
+
+	  if (p) {
+		  c->proc = p;
+		  switchuvm(p);
+		  p->state = RUNNING;
+		  swtch(&(c->scheduler), p->context);
+		  switchkvm();
+
+		  // Process is done running for now.
+		  // It should have changed its p->state before coming back.
+		  c->proc = 0;
+	  }
+	  release(&ptable.lock);
+  }
+
 #elif SCHEDULER == MLFQ_SCHED
 #endif 
 }
@@ -625,4 +658,25 @@ void update_rtime(void) {
 			ptable.proc[i].rtime++;
 	}
 	release(&ptable.lock);
+}
+
+int set_prioritiy(int new_priority, int pid) {
+	if (new_priority < 0 || new_priority > 100)
+		return -1;
+	struct proc *pc = 0;
+	acquire(&ptable.lock);
+	for (struct proc *p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+		if (p->pid == pid) {
+			pc = p;
+			break;
+		}
+	}
+	release(&ptable.lock);
+	if (!pc)
+		return -1;
+	int old_pty = pc->priority;
+	pc->priority = new_priority;
+	if (old_pty != new_priority) {
+	}
+	return old_pty;
 }
