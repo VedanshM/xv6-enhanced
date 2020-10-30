@@ -393,9 +393,10 @@ scheduler(void)
 #ifdef DEBUG
 	  cprintf("RR  cpu: %d pid: %d name: %s\n", c - cpus, p->pid, p->name);
 #endif
-	  c->proc = p;
+	    c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
+      p->rn_cnt++;
 
       swtch(&(c->scheduler), p->context);
       switchkvm();
@@ -434,6 +435,7 @@ scheduler(void)
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
+      p->rn_cnt++;
       swtch(&(c->scheduler), p->context);
       switchkvm();
 
