@@ -466,8 +466,8 @@ scheduler(void)
 
 	  if (p) {
 #ifdef DEBUG
-		  cprintf("PBS  cpu: %d pid: %d name: %s pty: %d \n", 
-      c - cpus, p->pid, p->name, p->priority);
+		  cprintf("PBS  cpu: %d pid: %d(%d) name: %s pty: %d \n",
+				  c - cpus, p->pid, p->parent ? p->parent->pid : 0, p->name, p->priority);
 #endif
 
 		  p->rn_cnt++;
@@ -691,7 +691,8 @@ int set_prioritiy(int new_priority, int pid) {
 		return -1;
 	int old_pty = pc->priority;
 	pc->priority = new_priority;
-	if (old_pty != new_priority) {
-	}
+	// if (old_pty != new_priority) {
+		// yield();
+	// }
 	return old_pty;
 }
