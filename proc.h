@@ -34,6 +34,8 @@ struct context {
 
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
+#define QCNT 5
+
 // Per-process state
 struct proc {
   uint sz;                     // Size of process memory (bytes)
@@ -52,8 +54,13 @@ struct proc {
   uint ctime;				           // Process creation time
   uint etime;				           // Process end time
   uint rtime;				           // Process total run time
+  uint tot_wtime;				       // Process time spent as runnable
+  uint curr_wtime;             // time for which process is runnable since last run, or since q enter
   uint priority;			         // priority for scheduer. in range [0,100]
   unsigned long long rn_cnt;   // no. of times got cpu
+  uint q_etime;                // enter time of q in mlfq
+  uint curr_q;                 // curr q in mlfq
+  uint ticks_inq[QCNT];        // array of ticks received as runtime in q
 };
 
 // Process memory is laid out contiguously, low addresses first:

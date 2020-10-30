@@ -335,7 +335,7 @@ int waitx(int *wtime, int *rtime) {
 				// Found one.
 				pid = p->pid;
 				*rtime = p->rtime;
-				*wtime = p->etime - p->ctime - p->rtime;
+				*wtime = p->tot_wtime;
 				kfree(p->kstack);
 				p->kstack = 0;
 				freevm(p->pgdir);
@@ -668,11 +668,15 @@ procdump(void)
   }
 }
 
-void update_rtime(void) {
+void update_proctime(void) {
 	acquire(&ptable.lock);
 	for (int i = 0; i < NPROC; i++) {
 		if (ptable.proc[i].state == RUNNING)
 			ptable.proc[i].rtime++;
+    else if(ptable.proc[i].state == RUNNABLE){
+      ptable.proc[i].tot_wtime++;
+      ptable.proc[i].curr_wtime++;
+    }
 	}
 	release(&ptable.lock);
 }
