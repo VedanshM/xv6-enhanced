@@ -199,6 +199,7 @@ UPROGS=\
 	_scdtest\
 	_setPriority\
 	_misc\
+	_benchmark\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)

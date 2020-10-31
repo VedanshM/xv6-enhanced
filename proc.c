@@ -506,17 +506,16 @@ scheduler(void)
 	  acquire(&ptable.lock);
 	  struct proc *selcp = 0;
 
-    //slec procedure wrong chose from fronts
+    //select from fronts and if not runnable rem from queue
+    // queue should only store runnable procs
 	  for(int i=0; i<QCNT; i++){
       p = frontq(i);
       if(p){
         remq(i, p);
         if( p->state == RUNNABLE){
           selcp =p;
-          i--;
           break;
-        }
-        else pushq(p->curr_q, p);
+        } else i--;
       }
     }
     // cprintf("SELECTED 0: %d\n", selcp ==0);
@@ -795,6 +794,7 @@ void remq(int qid, struct proc *p) {
 			for (int j = i + 1; j < priorq[qid].size; j++)
 				priorq[qid].p[j - 1] = priorq[qid].p[j];
 			priorq[qid].size--;
+      priorq[qid].p[priorq[qid].size]=0;
 			return;
 		}
 }
