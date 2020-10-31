@@ -93,6 +93,12 @@ found:
   p->rtime = 0;
   p->priority = 60;
   p->rn_cnt = 0;
+  p->curr_wtime=0;
+  p->curr_q=0;
+  p->curr_rtime=0;
+  for(int i=0;i<QCNT;i++)
+    p->ticks_inq[i]=0;
+  p->used_limit=0;
 
   release(&ptable.lock);
 
@@ -154,6 +160,10 @@ userinit(void)
   acquire(&ptable.lock);
 
   p->state = RUNNABLE;
+#if SCHEDULER == MLFQ_SCHED
+  pushq(0, p);
+  p->curr_q = 0;
+#endif
 
   release(&ptable.lock);
 }
@@ -220,7 +230,10 @@ fork(void)
   acquire(&ptable.lock);
 
   np->state = RUNNABLE;
-
+#if SCHEDULER == MLFQ_SCHED
+  pushq(0, np);
+  np->curr_q = 0;
+#endif
   release(&ptable.lock);
 
   return pid;
@@ -487,6 +500,58 @@ scheduler(void)
   }
 
 #elif SCHEDULER == MLFQ_SCHED
+  for (;;) {
+	  // Enable interrupts on this processor.
+	  sti();
+	  acquire(&ptable.lock);
+	  struct proc *selcp = 0;
+
+    //slec procedure wrong chose from fronts
+	  for(int i=0; i<QCNT; i++){
+      p = frontq(i);
+      if(p){
+        remq(i, p);
+        if( p->state == RUNNABLE){
+          selcp =p;
+          i--;
+          break;
+        }
+        else pushq(p->curr_q, p);
+      }
+    }
+    // cprintf("SELECTED 0: %d\n", selcp ==0);
+    if(selcp){
+      selcp->rn_cnt++;
+      selcp->curr_wtime=0;
+      selcp->curr_rtime=1;
+      selcp->ticks_inq[selcp->curr_q]++;
+      c->proc = selcp;
+
+      switchuvm(selcp);
+      selcp->state = RUNNING;
+      swtch(&(c->scheduler), selcp->context);
+      switchkvm();
+
+      // Process is done running for now.
+      // It should have changed its selcp->state before coming back.
+      c->proc = 0;
+
+      if(selcp && selcp->state == RUNNABLE){
+          if(selcp->used_limit && selcp->curr_q < QCNT-1){
+            selcp->used_limit=0;
+            selcp->curr_q++;
+            selcp->curr_wtime=0;
+            #ifdef DEBUG
+              cprintf("Proc: %s (%d) queue inc: %d\n",selcp->name, selcp->pid, selcp->curr_q);
+            #endif
+          }
+          selcp->curr_rtime=0;
+          pushq(selcp->curr_q, selcp);
+        }
+  	}
+	release(&ptable.lock);
+  }
+
 #endif 
 }
 
@@ -595,8 +660,12 @@ wakeup1(void *chan)
   struct proc *p;
 
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-    if(p->state == SLEEPING && p->chan == chan)
+    if(p->state == SLEEPING && p->chan == chan){
       p->state = RUNNABLE;
+#if SCHEDULER == MLFQ_SCHED
+	  pushq(p->curr_q, p);
+#endif
+    }
 }
 
 // Wake up all processes sleeping on chan.
@@ -621,8 +690,13 @@ kill(int pid)
     if(p->pid == pid){
       p->killed = 1;
       // Wake process from sleep if necessary.
-      if(p->state == SLEEPING)
+      if(p->state == SLEEPING){
         p->state = RUNNABLE;
+#if SCHEDULER == MLFQ_SCHED
+        pushq(0, p);
+        p->curr_q=0;
+#endif        
+      }
       release(&ptable.lock);
       return 0;
     }
@@ -701,4 +775,52 @@ int set_prioritiy(int new_priority, int pid) {
 		// yield();
 	// }
 	return old_pty;
+}
+
+void pushq(int qid, struct proc *p) {
+	if (priorq[qid].size < 2 * NPROC) {
+#ifdef DEBUG
+  // cprintf("proc: %d added to q:%d\n", p->pid, qid);
+#endif
+		priorq[qid].p[priorq[qid].size++] = p;
+	}
+}
+
+void remq(int qid, struct proc *p) {
+	for (int i = 0; i < priorq[qid].size; i++)
+		if (priorq[qid].p[i]->pid == p->pid) {
+#ifdef DEBUG
+			// cprintf("proc: %d removed to q:%d\n", p->pid, qid);
+#endif
+			for (int j = i + 1; j < priorq[qid].size; j++)
+				priorq[qid].p[j - 1] = priorq[qid].p[j];
+			priorq[qid].size--;
+			return;
+		}
+}
+
+void age_procs() {
+	for (int i = 1; i < QCNT; i++) {
+		for (int j = 0; j < priorq[i].size; j++) {
+			if (priorq[i].p + j && priorq[i].p[j]->state == RUNNABLE &&
+				priorq[i].p[j]->curr_wtime > STARV_LIM) {
+				struct proc *p = priorq[i].p[j];
+				pushq(i - 1, p);
+				remq(i, p);
+				p->curr_q = i - 1;
+        #ifdef DEBUG
+          cprintf("proc: %s(%d) aged to q: %d\n", p->name, p->pid, p->curr_q);
+        #endif
+			}
+		}
+	}
+}
+void demote_procs() {
+}
+
+struct proc *frontq(int qid) {
+	if (priorq[qid].size > 0) {
+		return priorq[qid].p[0];
+	}
+	return 0;
 }

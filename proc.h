@@ -35,6 +35,7 @@ struct context {
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
 #define QCNT 5
+#define STARV_LIM 25
 
 // Per-process state
 struct proc {
@@ -56,11 +57,12 @@ struct proc {
   uint rtime;				           // Process total run time
   uint tot_wtime;				       // Process time spent as runnable
   uint curr_wtime;             // time for which process is runnable since last run, or since q enter
+  uint curr_rtime;             // time since got latest cpu hold, only for mlfq
   uint priority;			         // priority for scheduer. in range [0,100]
   unsigned long long rn_cnt;   // no. of times got cpu
-  uint q_etime;                // enter time of q in mlfq
-  uint curr_q;                 // curr q in mlfq
+  int curr_q;                 // curr q in mlfq
   uint ticks_inq[QCNT];        // array of ticks received as runtime in q
+  int used_limit;
 };
 
 // Process memory is laid out contiguously, low addresses first:
@@ -68,3 +70,14 @@ struct proc {
 //   original data and bss
 //   fixed-size stack
 //   expandable heap
+
+struct queue {
+	int size;
+	struct proc *p[NPROC * 2];
+} priorq[QCNT];
+
+void pushq(int qid, struct proc *p);
+void remq(int qid, struct proc *p);
+void age_procs();
+void demote_procs();
+struct proc *frontq(int qid);

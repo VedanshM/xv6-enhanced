@@ -51,7 +51,8 @@ trap(struct trapframe *tf)
     if(cpuid() == 0){
       acquire(&tickslock);
       ticks++;
-	  update_proctime();
+      update_proctime();
+	  age_procs();
 	  wakeup(&ticks);
       release(&tickslock);
     }
@@ -100,6 +101,26 @@ trap(struct trapframe *tf)
   // until it gets to the regular system call return.)
   if(myproc() && myproc()->killed && (tf->cs&3) == DPL_USER)
     exit();
+
+#if SCHEDULER == MLFQ_SCHED
+  struct proc *p = myproc();
+  if (p &&p->state == RUNNING &&tf->trapno == T_IRQ0 + IRQ_TIMER) {
+	  if (p->curr_rtime >= (1 << p->curr_q)*10) {
+		  p->used_limit = 1;
+#ifdef DEBUG
+		  // cprintf("limit");
+#endif
+		  yield();
+	  } else {
+#ifdef DEBUG
+		  // cprintf("in limit");
+#endif
+
+		  p->curr_rtime++;
+		  p->ticks_inq[p->curr_q]++;
+	  }
+  }
+#endif
 
   // Force process to give up CPU on clock tick.
   // If interrupts were on while locks held, would need to check nlock.

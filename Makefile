@@ -198,6 +198,7 @@ UPROGS=\
 	_zombie\
 	_scdtest\
 	_setPriority\
+	_misc\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
