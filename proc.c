@@ -95,6 +95,7 @@ found:
   p->priority = 60;
   p->rn_cnt = 0;
   p->curr_wtime=0;
+  p->tot_wtime=0;
   p->curr_q=0;
   p->curr_rtime=0;
   for(int i=0;i<QCNT;i++)
