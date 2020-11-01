@@ -6,6 +6,7 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+#include "pinfo.h"
 
 struct {
   struct spinlock lock;
@@ -823,4 +824,39 @@ struct proc *frontq(int qid) {
 		return priorq[qid].p[0];
 	}
 	return 0;
+}
+
+int get_pinfos(struct pinfo *arg){
+	int n = 0;
+  
+	acquire(&ptable.lock);
+	for (struct proc *p = ptable.proc; p - ptable.proc < NPROC; p++) {
+		switch (p->state) {
+		case UNUSED:
+		case EMBRYO:
+			continue;
+		case RUNNING:
+			strncpy(arg[n].state, "running ", sizeof("running "));
+			break;
+		case RUNNABLE:
+			strncpy(arg[n].state, "runnable", sizeof("runnable"));
+			break;
+		case SLEEPING:
+			strncpy(arg[n].state, "sleeping", sizeof("sleeping"));
+			break;
+		case ZOMBIE:
+			strncpy(arg[n].state, "zombie  ", sizeof("zombie  "));
+		}
+		arg[n].pid = p->pid;
+		arg[n].cur_q = p->curr_q;
+		arg[n].n_run = p->rn_cnt;
+		arg[n].priority = p->priority;
+		arg[n].rtime = p->rtime;
+		for (int i = 0; i < QCNT; i++) {
+			arg[n].ticks[i] = p->ticks_inq[i];
+		}
+		n++;
+	} 
+	release(&ptable.lock);
+	return n;
 }

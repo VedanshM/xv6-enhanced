@@ -6,6 +6,7 @@
 #include "memlayout.h"
 #include "mmu.h"
 #include "proc.h"
+#include "pinfo.h"
 
 int
 sys_fork(void)
@@ -108,4 +109,12 @@ int sys_set_priority(void) {
 		argint(1, &pid) < 0)
 		return -1;
 	return set_prioritiy(pty, pid);
+}
+
+int sys_get_pinfos(void){
+  struct pinfo *p;
+  if(argptr(0, (char**)&p, sizeof(p)) <0)
+    return -1;
+  int n = get_pinfos(p);
+  return n;
 }

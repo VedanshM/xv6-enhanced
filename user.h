@@ -1,5 +1,6 @@
 struct stat;
 struct rtcdate;
+struct pinfo;
 
 // system calls
 int fork(void);
@@ -25,6 +26,7 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int set_priority(int, int);
+int get_pinfos(struct pinfo *);
 
 // ulib.c
 int stat(const char*, struct stat*);

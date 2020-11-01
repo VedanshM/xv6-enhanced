@@ -200,6 +200,7 @@ UPROGS=\
 	_setPriority\
 	_misc\
 	_benchmark\
+	_ps\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
