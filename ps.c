@@ -3,6 +3,7 @@
 #include "user.h"
 
 int main() {
+	set_priority(10, getpid());
 	struct pinfo *arr = malloc(100*sizeof(struct pinfo));
 	int n = get_pinfos(arr);
 	printf(1, "PID\tPriority\tState\t\tr_time\tw_time\tn_run\tcur_q\tq0\tq1\tq2\tq3\tq4\n");

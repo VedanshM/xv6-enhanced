@@ -816,8 +816,6 @@ void age_procs() {
 		}
 	}
 }
-void demote_procs() {
-}
 
 struct proc *frontq(int qid) {
 	if (priorq[qid].size > 0) {

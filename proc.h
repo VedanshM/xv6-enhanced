@@ -79,5 +79,4 @@ struct queue {
 void pushq(int qid, struct proc *p);
 void remq(int qid, struct proc *p);
 void age_procs();
-void demote_procs();
 struct proc *frontq(int qid);
