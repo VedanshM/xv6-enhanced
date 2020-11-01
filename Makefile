@@ -201,6 +201,8 @@ UPROGS=\
 	_misc\
 	_benchmark\
 	_ps\
+	_run\
+	_task\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)

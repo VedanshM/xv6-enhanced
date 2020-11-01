@@ -35,7 +35,7 @@ struct context {
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
 #define QCNT 5
-#define STARV_LIM 25
+#define STARV_LIM 24
 
 // Per-process state
 struct proc {

@@ -105,7 +105,7 @@ trap(struct trapframe *tf)
 #if SCHEDULER == MLFQ_SCHED
   struct proc *p = myproc();
   if (p &&p->state == RUNNING &&tf->trapno == T_IRQ0 + IRQ_TIMER) {
-	  if (p->curr_rtime >= (1 << p->curr_q)*10) {
+	  if (p->curr_rtime >= (1 << p->curr_q)) {
 		  p->used_limit = 1;
 #ifdef DEBUG
 		  // cprintf("limit");
