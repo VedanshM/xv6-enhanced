@@ -92,14 +92,24 @@ found:
   p->ctime = ticks;
   p->etime = -1;
   p->rtime = 0;
-  p->priority = 60;
   p->rn_cnt = 0;
-  p->curr_wtime=0;
   p->tot_wtime=0;
-  p->curr_q=0;
+  p->curr_wtime=0;
   p->curr_rtime=0;
-  for(int i=0;i<QCNT;i++)
+  p->priority = 60;
+  p->curr_q=0;
+#if SCHEDULER != PBS_SCHED
+  p->priority = -1;
+#endif
+#if SCHEDULER != MLFQ_SCHED
+  p->curr_q = -1;
+#endif
+  for(int i=0;i<QCNT;i++){
     p->ticks_inq[i]=0;
+#if SCHEDULER != MLFQ_SCHED
+  	p->ticks_inq[i]=-1;
+#endif
+  }
   p->used_limit=0;
 
   release(&ptable.lock);
@@ -856,10 +866,15 @@ int get_pinfos(struct pinfo *arg){
 			strncpy(arg[n].state, "zombie  ", sizeof("zombie  "));
 		}
 		arg[n].pid = p->pid;
-		arg[n].cur_q = p->curr_q;
 		arg[n].n_run = p->rn_cnt;
-		arg[n].priority = p->priority;
 		arg[n].rtime = p->rtime;
+  #if SCHEDULER == PBS_SCHED
+		arg[n].priority = p->priority;
+  #else 
+    arg[n].priority = -1;
+  #endif
+
+		arg[n].cur_q = p->curr_q;
 		for (int i = 0; i < QCNT; i++) {
 			arg[n].ticks[i] = p->ticks_inq[i];
 		}

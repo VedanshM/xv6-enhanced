@@ -22,5 +22,6 @@ int main() {
 			   arr[i].ticks[3],
 			   arr[i].ticks[4]);
 	}
+	printf(1, "\n");
 	exit();
 }
