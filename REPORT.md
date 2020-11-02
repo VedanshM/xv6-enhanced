@@ -19,3 +19,9 @@ RR seems to have done a best job in this experiment. But it has problems like lo
 
 Overall a best scheduling algorithm can only be pickes when the user requirements are known precisely.
 For example FCFS is not suitable if we need a responsive system. PBS is not suitable when we incoming processes are known in terms of being CPU bound or I/O bound. MLFQ and RR can be suitable in maintaing a general responsiveness of the system. MLFQ n addition preempts CPU bound processes less often but is complex and need very efficient implementation to minimize resource wastage in decision making,
+
+## Bonus: Graph
+
+The graph has been plotted for the child processes of the official benchmark provided.  
+
+![MLFQ_graph](graph.png)
