@@ -526,6 +526,9 @@ scheduler(void)
       selcp->curr_wtime=0;
       selcp->curr_rtime=1;
       selcp->ticks_inq[selcp->curr_q]++;
+#ifdef LOGS
+      cprintf("%d %d %d::=\n", ticks, selcp->pid, selcp->curr_q);
+#endif
       c->proc = selcp;
 
       switchuvm(selcp);
@@ -545,6 +548,9 @@ scheduler(void)
             #ifdef DEBUG
               cprintf("Proc: %s (%d) queue inc: %d\n",selcp->name, selcp->pid, selcp->curr_q);
             #endif
+#ifdef LOGS
+  cprintf("%d %d %d::=\n", ticks,selcp->pid, selcp->curr_q);
+#endif
           }
           selcp->curr_rtime=0;
           pushq(selcp->curr_q, selcp);
@@ -813,6 +819,9 @@ void age_procs() {
         #ifdef DEBUG
           cprintf("proc: %s(%d) aged to q: %d\n", p->name, p->pid, p->curr_q);
         #endif
+#ifdef LOGS
+		  cprintf("%d %d %d::=\n", ticks,p->pid, p->curr_q);
+#endif
 			}
 		}
 	}
