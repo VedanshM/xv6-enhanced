@@ -1,8 +1,9 @@
+#!/bin/env python3
 import matplotlib.pyplot as plt
 import numpy as np
 
 logs = 0
-with open('form') as f:
+with open('logs') as f:
     logs = f.readlines()
 
 data = [{} for _ in range(0, 10)]
